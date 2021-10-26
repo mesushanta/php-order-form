@@ -110,9 +110,22 @@
               </div>
             </div>
 
-            </form>
+          </form>
         </div>
         <div class="col-span-5 md:col-span-2 h-72 py-8">
+          
+          <div class="grid grid-cols-2 gap-4 w-full">
+          <?php
+            if(isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+             foreach($_SESSION['cart'] as $cart) {
+               echo $cart['name'];
+          ?>
+          
+          <?php 
+            }   
+            }
+          ?>
+          <div>
 
           <div class="grid grid-cols-2 gap-4 w-full">
             <?php
@@ -125,7 +138,10 @@
               <img class="w-full mx-auto" src="<?php echo $food->img; ?>" alt="">
 
               <form class="" action="" method="post">
-                <input type="hidden" name="item" value="<?php echo $food->id; ?>">
+                <input type="hidden" name="item_id" value="<?php echo $food->id; ?>">
+                <input type="hidden" name="item_name" value="<?php echo $food->name; ?>">
+                <input type="hidden" name="item_price" value="<?php echo $food->price; ?>">
+                <input type="hidden" name="item_img" value="<?php echo $food->img; ?>">
                 <button class="px-4 h-10 mt-4 bg-blue-500 hover:bg-blue-600 hover:bg-blue-700 text-white rounded-sm" type="submit" name="add_to_cart">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -140,9 +156,6 @@
             ?>
           </div>
 
-          <div class="">
-
-          </div>
 
 
 

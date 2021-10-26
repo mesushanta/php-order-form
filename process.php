@@ -1,9 +1,17 @@
 <?php
 
 session_start();
+// var_dump($_COOKIE);
+// var_dump($_GET);
+// var_dump($_POST);
+
+
+// var_dump($_SESSION);
+
 $message = [];
 $history = [];
 $total = [];
+
 
 $food_data = [
   ['id' => 1, 'name' => 'Club Ham', 'price' => 3.20, 'img' => 'https://www.mcdonalds.be/_webdata/product-images/de-hamburger.png'],
@@ -32,6 +40,9 @@ else {
 }
 if (isset($_POST['process'])) {
   $message = submit_order();
+}
+if (isset($_POST['add_to_cart'])) {
+  addToCart();
 }
 
 function submit_order() {
@@ -132,7 +143,7 @@ function submit_order() {
   if(isset($_POST['house'])) {
     $_SESSION['house'] = $_POST['house'];
     if($_POST['house'] == '') {
-      $message['status'] = 'error';
+      $message['status'] = 'errosr';
       $message['error']['house'] = "Please provide your postcode";
     }
     else if(!filter_var($_POST['house'], FILTER_VALIDATE_INT)) {
@@ -152,8 +163,28 @@ function submit_order() {
 }
 
 function addToCart() {
-  if(isset($_POST['item'])) {
-    $id = $_POST['item'];
+    $id = $_POST['item_id'];
+    $cart = array();
+
+    if(isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+      $cart = $_SESSION['cart'];
+    }
     
+    $new_item = array(
+       'id' => $id,
+       'name' => $_POST['item_name'],
+       'qty' => 1,
+       'price' => $_POST['item_price'],
+       'img' => $_POST['item_img'],
+    );
+    array_push($cart, $new_item);
+    
+    $_SESSION['cart'] = $cart;
+    
+    // setcookie('cart', json_encode($cart), time() + (86400 * 30), "/"); // 86400 = 1 day
   }
-}
+  
+  function clearCart() {
+    // setcookie('cart', '', time() - 3600);
+    $_SESSION['cart'] = '';
+  }
