@@ -1,0 +1,16 @@
+[
+  'food_data' => [
+    ['id' => 1, 'name' => 'Club Ham', 'price' => 3.20, 'img' => 'https://www.mcdonalds.be/_webdata/product-images/de-hamburger.png'],
+    ['id' => 2, 'name' => 'Club Cheese', 'price' => 3, 'img' => 'https://www.mcdonalds.be/_webdata/product-images/de-cheeseburger.png'],
+    ['id' => 3, 'name' => 'Club Cheese & Ham', 'price' => 4, 'img' => 'https://www.mcdonalds.be/_webdata/product-images/de-double-cheese.png'],
+    ['id' => 4, 'name' => 'Club Chicken', 'price' => 4, 'img' => 'https://www.mcdonalds.be/_webdata/product-images/mcchicken.png'],
+    ['id' => 5, 'name' => 'Club Salmon', 'price' => 5, 'img' => 'https://www.mcdonalds.be/_webdata/product-images/royal-o-fish.png']
+  ],
+
+  'drink_data' => [
+    ['id' => 6, 'name' => 'Cola', 'price' => 2, 'img' => 'https://www.mcdonalds.be/_webdata/product-images/12100825_Update_Drinks-Logos_500x50018.png'],
+    ['id' => 7, 'name' => 'Fanta', 'price' => 2, 'img' => 'https://www.mcdonalds.be/_webdata/product-images/12100825_Update_Drinks-Logos_500x50016.png'],
+    ['id' => 8, 'name' => 'Sprite', 'price' => 2, 'img' => 'https://www.mcdonalds.be/_webdata/product-images/12100825_Update_Drinks-Logos_500x50013-01.png'],
+    ['id' => 9, 'name' => 'Ice-tea', 'price' => 3, 'img' => 'https://www.mcdonalds.be/_webdata/product-images/12100825_Update_Drinks-Logos_500x50017.png'],
+  ]
+]
