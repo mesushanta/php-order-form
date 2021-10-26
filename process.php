@@ -153,5 +153,7 @@ function submit_order() {
 
 function addToCart() {
   if(isset($_POST['item'])) {
+    $id = $_POST['item'];
+    
   }
 }
