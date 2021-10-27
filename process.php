@@ -7,17 +7,12 @@ session_start();
 // var_dump($_GET);
 // var_dump($_POST);
 
-
-// var_dump($_SESSION);
-
 $message = array();
 $history_total = 0;
-
 if(isset($_COOKIE['total']) && !empty($_COOKIE['total'])) {
   $history_total = $_COOKIE['total'];
 }
-
-
+$message['success'] = "nok";
 
 $food_data = [
   ['id' => 1, 'name' => 'Club Ham', 'price' => 3.20, 'img' => 'https://www.mcdonalds.be/_webdata/product-images/de-hamburger.png'],
@@ -44,12 +39,21 @@ if($type == 'drink') {
 else {
   $foods = $food_data;
 }
+if(isset($_POST['reset'])) {
+  clearFields();
+}
+if(isset($_POST['reset_cart'])) {
+  clearCart();
+}
 if(isset($_POST['process'])) {
   $message = submit_order();
-
   if(empty($message['error']['name']) && empty($message['error']['email']) && empty($message['error']['phone']) && empty($message['error']['city']) && empty($message['error']['postcode']) && empty($message['error']['street']) && empty($message['error']['house'])) {
 
-    if(isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+    if(!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
+      $message['error']['cart'] = "Empty Cart. Please add food to order";
+      $message['success'] = "nok";
+    }
+    else {
     $total = 0;
 
     setcookie('order_history', json_encode($_SESSION['cart']), time() + (86400 * 30), "/");
@@ -61,13 +65,28 @@ if(isset($_POST['process'])) {
     foreach($_SESSION['cart'] as $item) {
       $total = $total + ($item['qty'] * $item['price']);
     }
+    $delivery_time = "2 hours.";
+    if(isset($_POST['express'])) {
+      $total = $total + 5;
+      $delivery_time = "45 mins";
+    }
 
-    setcookie('total', $total, time() + (86400 * 30), "/");
+    $history_total = $total;
+    setcookie('total', $total, time() + (86400 * 30 * 12 * 100), "/");
+
+    $message_email = "Thank you for your order. we got your order. Your order details are below.";
+    foreach($_SESSION['cart'] as $item) {
+      $message_email = $message_email . '<li>'. $item["qty"] . ' x ' . $item["name"]. '€' .$item["qty"]*$item["price"] .'</li>';
+    }
+
+    mail('pyakurelsushanta@gmail.com','Order successful',$message_email,"From: sush.macbook.test");
     clearCart();
     clearFields();
 
-    }
+    $message['success'] = "ok";
+    $message['success_msg'] = "Thank you, your order is successfully submited. Estimated delivery time is " . $delivery_time;
 
+    }
 
   }
 }
@@ -77,16 +96,17 @@ if (isset($_POST['add_to_cart'])) {
 
 function submit_order() {
   $message = array();
-  $message['status'] = '';
-  if((empty($_POST['name']) && empty($_POST['email']) && empty($_POST['phone']) && empty($_POST['city']) && empty($_POST['postcode']) && empty($_POST['street']) && empty($_POST['house']))) {
-    $message['error']['cart'] = "Empty Cart. Please add food to order";
-    $message['success'] = false;
-  }
+  $message['success'] = true;
+  // if((empty($_POST['name']) && empty($_POST['email']) && empty($_POST['phone']) && empty($_POST['city']) && empty($_POST['postcode']) && empty($_POST['street']) && empty($_POST['house']))) {
+  //   $message['error']['cart'] = "Empty Cart. Please add food to order";
+  //   $message['success'] = false;
+  // }
   if(isset($_POST['name'])) {
     $_SESSION['name'] = $_POST['name'];
     if($_POST['name'] == '') {
       $message['status'] = 'error';
       $message['error']['name'] = "Please provide your full name";
+      $message['success'] = false;
     }
     else {
       $message['error']['name'] = "";
@@ -99,10 +119,12 @@ function submit_order() {
     if($_POST['email'] == '') {
       $message['status'] = 'error';
       $message['error']['email'] = "Please provide your email address";
+        $message['success'] = false;
     }
     else if(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
       $message['status'] = 'error';
       $message['error']['email'] = "This is invalid email address";
+      $message['success'] = false;
     }
     else {
       $message['error']['email'] = "";
@@ -116,14 +138,17 @@ function submit_order() {
     if($_POST['phone'] == '') {
       $message['status'] = 'error';
       $message['error']['phone'] = "Please provide your phone number";
+        $message['success'] = false;
     }
     else if(!filter_var($_POST['phone'], FILTER_VALIDATE_INT)) {
       $message['status'] = 'error';
       $message['error']['phone'] = "Phone number must be a number";
+      $message['success'] = false;
     }
     else if($_POST['phone'] < 0) {
       $message['status'] = 'error';
       $message['error']['phone'] = "Phone number can't be a negative number";
+      $message['success'] = false;
     }
     else {
       $message['error']['phone'] = "";
@@ -136,6 +161,7 @@ function submit_order() {
     if($_POST['city'] == '') {
       $message['status'] = 'error';
       $message['error']['city'] = "Where shoud we deliver the food?";
+      $message['success'] = false;
     }
     else {
       $message['error']['city'] = "";
@@ -146,14 +172,17 @@ function submit_order() {
     if($_POST['postcode'] == '') {
       $message['status'] = 'error';
       $message['error']['postcode'] = "Please provide your postcode";
+      $message['success'] = false;
     }
     else if(!filter_var($_POST['postcode'], FILTER_VALIDATE_INT)) {
       $message['status'] = 'error';
       $message['error']['postcode'] = "Postcode is always must be a number";
+      $message['success'] = false;
     }
     else if($_POST['postcode'] < 0) {
       $message['status'] = 'error';
       $message['error']['postcode'] = "How comes the postcode negative number ?";
+      $message['success'] = false;
     }
     else {
       $message['error']['postcode'] = "";
@@ -164,6 +193,7 @@ function submit_order() {
     if($_POST['street'] == '') {
       $message['status'] = 'error';
       $message['error']['street'] = "Street name please";
+      $message['success'] = false;
     }
     else {
       $message['error']['street'] = "";
@@ -182,15 +212,15 @@ function submit_order() {
     else if($_POST['house'] < 0) {
       $message['status'] = 'error';
       $message['error']['house'] = "How comes the house number negative number ?";
+      $message['success'] = false;
     }
     else {
       $message['error']['house'] = "";
     }
   }
 
-  if(empty($message['error']['name']) && empty($message['error']['email']) && empty($message['error']['phone']) && empty($message['error']['city']) && empty($message['error']['postcode']) && empty($message['error']['street']) && empty($message['error']['house'])) {
-    $message['status'] == 'success';
-  }
+  $_SESSION['address'] = $_POST['street'] . ' ' . $_POST['house'] . ',' . $_POST['postcode'] . ' ' . $_POST['city'];
+
   return $message;
 }
 
@@ -238,7 +268,6 @@ function addToCart() {
   }
 
   function clearCart() {
-    // setcookie('cart', '', time() - 3600);
     unset($_SESSION['cart']);
   }
 
