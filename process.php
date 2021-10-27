@@ -1,6 +1,8 @@
 <?php
 
 session_start();
+// session_unset();
+// session_destroy();
 // var_dump($_COOKIE);
 // var_dump($_GET);
 // var_dump($_POST);
@@ -8,9 +10,13 @@ session_start();
 
 // var_dump($_SESSION);
 
-$message = [];
-$history = [];
-$total = [];
+$message = array();
+$history_total = 0;
+
+if(isset($_COOKIE['total']) && !empty($_COOKIE['total'])) {
+  $history_total = $_COOKIE['total'];
+}
+
 
 
 $food_data = [
@@ -38,15 +44,44 @@ if($type == 'drink') {
 else {
   $foods = $food_data;
 }
-if (isset($_POST['process'])) {
+if(isset($_POST['process'])) {
   $message = submit_order();
+
+  if(empty($message['error']['name']) && empty($message['error']['email']) && empty($message['error']['phone']) && empty($message['error']['city']) && empty($message['error']['postcode']) && empty($message['error']['street']) && empty($message['error']['house'])) {
+
+    if(isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+    $total = 0;
+
+    setcookie('order_history', json_encode($_SESSION['cart']), time() + (86400 * 30), "/");
+
+    if(isset($_COOKIE['total']) && !empty($_COOKIE['total'])) {
+      $total = $_COOKIE['total'];
+    }
+
+    foreach($_SESSION['cart'] as $item) {
+      $total = $total + ($item['qty'] * $item['price']);
+    }
+
+    setcookie('total', $total, time() + (86400 * 30), "/");
+    clearCart();
+    clearFields();
+
+    }
+
+
+  }
 }
 if (isset($_POST['add_to_cart'])) {
   addToCart();
 }
 
 function submit_order() {
-  
+  $message = array();
+  $message['status'] = '';
+  if((empty($_POST['name']) && empty($_POST['email']) && empty($_POST['phone']) && empty($_POST['city']) && empty($_POST['postcode']) && empty($_POST['street']) && empty($_POST['house']))) {
+    $message['error']['cart'] = "Empty Cart. Please add food to order";
+    $message['success'] = false;
+  }
   if(isset($_POST['name'])) {
     $_SESSION['name'] = $_POST['name'];
     if($_POST['name'] == '') {
@@ -54,14 +89,13 @@ function submit_order() {
       $message['error']['name'] = "Please provide your full name";
     }
     else {
-      $message['status'] = 'ok';
       $message['error']['name'] = "";
     }
   }
-  
+
   if(isset($_POST['email'])) {
     $_SESSION['email'] = $_POST['email'];
-    
+
     if($_POST['email'] == '') {
       $message['status'] = 'error';
       $message['error']['email'] = "Please provide your email address";
@@ -71,15 +105,14 @@ function submit_order() {
       $message['error']['email'] = "This is invalid email address";
     }
     else {
-      $message['status'] = 'ok';
       $message['error']['email'] = "";
     }
-  
+
   }
-  
+
   if(isset($_POST['phone'])) {
     $_SESSION['phone'] = $_POST['phone'];
-    
+
     if($_POST['phone'] == '') {
       $message['status'] = 'error';
       $message['error']['phone'] = "Please provide your phone number";
@@ -93,20 +126,18 @@ function submit_order() {
       $message['error']['phone'] = "Phone number can't be a negative number";
     }
     else {
-      $message['status'] = 'ok';
       $message['error']['phone'] = "";
     }
   }
-  
+
   if(isset($_POST['city'])) {
     $_SESSION['city'] = $_POST['city'];
-    
+
     if($_POST['city'] == '') {
       $message['status'] = 'error';
       $message['error']['city'] = "Where shoud we deliver the food?";
     }
     else {
-      $message['status'] = 'ok';
       $message['error']['city'] = "";
     }
   }
@@ -125,7 +156,6 @@ function submit_order() {
       $message['error']['postcode'] = "How comes the postcode negative number ?";
     }
     else {
-      $message['status'] = 'ok';
       $message['error']['postcode'] = "";
     }
   }
@@ -136,7 +166,6 @@ function submit_order() {
       $message['error']['street'] = "Street name please";
     }
     else {
-      $message['status'] = 'ok';
       $message['error']['street'] = "";
     }
   }
@@ -155,9 +184,12 @@ function submit_order() {
       $message['error']['house'] = "How comes the house number negative number ?";
     }
     else {
-      $message['status'] = 'ok';
       $message['error']['house'] = "";
     }
+  }
+
+  if(empty($message['error']['name']) && empty($message['error']['email']) && empty($message['error']['phone']) && empty($message['error']['city']) && empty($message['error']['postcode']) && empty($message['error']['street']) && empty($message['error']['house'])) {
+    $message['status'] == 'success';
   }
   return $message;
 }
@@ -169,22 +201,57 @@ function addToCart() {
     if(isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
       $cart = $_SESSION['cart'];
     }
-    
-    $new_item = array(
-       'id' => $id,
-       'name' => $_POST['item_name'],
-       'qty' => 1,
-       'price' => $_POST['item_price'],
-       'img' => $_POST['item_img'],
-    );
-    array_push($cart, $new_item);
-    
+    $qty = 1;
+    $is_exist = 0;
+    $this_key = '';
+    foreach($cart as $key => $value) {
+      if($value['id'] == $id) {
+        $qty = $value['qty'] + 1;
+        $is_exist = 1;
+        $this_key = $key;
+      }
+    }
+
+    if($is_exist) {
+      $cart[$this_key] = array(
+         'id' => $id,
+         'name' => $_POST['item_name'],
+         'qty' => $qty,
+         'price' => $_POST['item_price'],
+         'img' => $_POST['item_img'],
+       );
+
+    }
+    else {
+      $new_item = array(
+         'id' => $id,
+         'name' => $_POST['item_name'],
+         'qty' => 1,
+         'price' => $_POST['item_price'],
+         'img' => $_POST['item_img'],
+       );
+      array_push($cart, $new_item);
+    }
     $_SESSION['cart'] = $cart;
-    
+
     // setcookie('cart', json_encode($cart), time() + (86400 * 30), "/"); // 86400 = 1 day
   }
-  
+
   function clearCart() {
     // setcookie('cart', '', time() - 3600);
-    $_SESSION['cart'] = '';
+    unset($_SESSION['cart']);
+  }
+
+  function clearFields() {
+    unset($_SESSION['name']);
+    unset($_SESSION['email']);
+    unset($_SESSION['phone']);
+    unset($_SESSION['city']);
+    unset($_SESSION['postcode']);
+    unset($_SESSION['street']);
+    unset($_SESSION['house']);
+  }
+
+  function clearCookie() {
+    setcookie('cart', '', time() - 3600);
   }

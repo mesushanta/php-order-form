@@ -36,6 +36,11 @@
         <div class="col-span-5 md:col-span-3">
           <form class="" action="" method="post">
             <div class="mt-8 bg-gray-100 border border-gray-300 shadow-lg">
+              <?php if(isset($message['status']) && $message['status'] == 'success') { ?>
+              <div class="mx-8 my-5 px-4 py-2 bg-green-50 border border-green-400">
+                Form Submitted
+              </div>
+            <?php } ?>
 
               <h3 class="text-2xl text-gray-800 pt-10 px-6">Basic Details</h3>
               <div class="grid grid-cols-2 gap-8 my-4 px-6 py-4">
@@ -101,8 +106,8 @@
                     <span class="text-red-700 text-sm font-light"><?php echo $message['error']['house']; ?></span>
                     <?php } ?>
                 </div>
-                
-                
+
+
                 <div class="">
                   <button class="px-6 h-12 bg-blue-500 hover:bg-blue-600 border border-blue-700 text-white" type="submit" name="process">Order</button>
                 </div>
@@ -111,21 +116,32 @@
             </div>
 
           </form>
+
+          You have already ordered €<?php echo number_format((float)$history_total, 2, '.', ''); ?> in past
         </div>
-        <div class="col-span-5 md:col-span-2 h-72 py-8">
-          
-          <div class="grid grid-cols-2 gap-4 w-full">
+        <div class="col-span-5 md:col-span-2 py-8">
+
+          <div class="grid grid-cols-2 gap-4 w-full p-8 border-4 border-red-300 mb-8">
+            <h4 class="text-2xl font-light text-gray-700">Your Food Basket</h4>
           <?php
             if(isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
              foreach($_SESSION['cart'] as $cart) {
-               echo $cart['name'];
           ?>
-          
-          <?php 
-            }   
+
+          <li class="col-span-2 list-none block w-full h-16 border-b border-dashed border-gray-400">
+            <span class="h-14 align-middle block inline-block"><?php echo $cart['qty'] ?></span>
+            <span class="h-14 align-middle block inline-block">X</span>
+            <span class="w-20 h-14 block inline-block text-center">
+              <img class="h-14 w-full" src="<?php echo $cart['img'] ?>" alt="">
+            </span>
+            <span class="h-14 align-middle block inline-block"><?php echo $cart['name'] ?></span>
+          </li>
+
+          <?php
+            }
             }
           ?>
-          <div>
+        </div>
 
           <div class="grid grid-cols-2 gap-4 w-full">
             <?php
@@ -136,6 +152,8 @@
             <div class="col-span-2 xl:col-span-1 w-full h-auto text-center border-2 border-blue-400 px-4 py-4">
               <h4 class="text-xl text-red-900 font-light"><?php echo $food->name; ?></h4>
               <img class="w-full mx-auto" src="<?php echo $food->img; ?>" alt="">
+
+              <span class="block text-xl font-light">€<?php echo number_format((float)$food->price, 2, '.', ''); ?></span>
 
               <form class="" action="" method="post">
                 <input type="hidden" name="item_id" value="<?php echo $food->id; ?>">
